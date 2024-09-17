@@ -39,7 +39,12 @@ n_chat_modes_per_page = int(_chat_modes_per_page) if _chat_modes_per_page else 5
 mongodb_port = os.getenv('MONGODB_PORT') or '27017'
 mongodb_uri = f"mongodb://mongo:{mongodb_port}"
 
-allowed_telegram_usernames = config_yaml["allowed_telegram_usernames"]
+tg_usernames = os.getenv('ALLOWED_TELEGRAM_USERNAMES') or None
+if tg_usernames:
+    allowed_telegram_usernames = tg_usernames.split(',')
+else:
+    allowed_telegram_usernames = []
+#allowed_telegram_usernames = config_yaml["allowed_telegram_usernames"]
 
 # chat_modes
 with open(config_dir / "chat_modes.yml", 'r') as f:
