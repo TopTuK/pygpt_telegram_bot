@@ -60,7 +60,6 @@ To get a reply from the bot in the chat – @ <b>tag</b> it or <b>reply</b> to i
 For example: "{bot_username} write a poem about Telegram"
 """
 
-
 def split_text_into_chunks(text, chunk_size):
     for i in range(0, len(text), chunk_size):
         yield text[i:i + chunk_size]
@@ -79,7 +78,7 @@ async def is_bot_mentioned(update: Update, context: CallbackContext):
             if message.reply_to_message.from_user.id == context.bot.id:
                 return True
     except:
-        return True
+        return False
     else:
         return False
 
@@ -326,7 +325,7 @@ async def _vision_message_handle_fn(update: Update, context: CallbackContext, us
 async def unsupport_message_handle(update: Update, context: CallbackContext, message=None):
     error_text = f"I don't know how to read files or videos. Send the picture in normal mode (Quick Mode)."
     logger.error(error_text)
-    await update.message.reply_text(error_text)
+    #await update.message.reply_text(error_text)
     return
 
 async def message_handle(update: Update, context: CallbackContext, message=None, use_new_dialog_timeout=True):
@@ -652,8 +651,7 @@ async def show_chat_modes_callback_handle(update: Update, context: CallbackConte
      except telegram.error.BadRequest as e:
          if str(e).startswith("Message is not modified"):
              pass
-
-
+         
 async def set_chat_mode_handle(update: Update, context: CallbackContext):
     await register_user_if_not_exists(update.callback_query, context, update.callback_query.from_user)
     user_id = update.callback_query.from_user.id
@@ -676,11 +674,12 @@ async def set_chat_mode_handle(update: Update, context: CallbackContext):
 def get_settings_menu(user_id: int):
     current_model = db.get_user_attribute(user_id, "current_model")
     text = config.models["info"][current_model]["description"]
-
     text += "\n\n"
+
     score_dict = config.models["info"][current_model]["scores"]
     for score_key, score_value in score_dict.items():
-        text += "🟢" * score_value + "⚪️" * (5 - score_value) + f" – {score_key}\n\n"
+        #text += "🟢" * score_value + "⚪️" * (5 - score_value) + f" – {score_key}\n\n"
+        text += "🟢" * score_value + f" – {score_key}\n\n"
 
     text += "\nSelect <b>model</b>:"
 
@@ -691,9 +690,7 @@ def get_settings_menu(user_id: int):
         if model_key == current_model:
             title = "✅ " + title
 
-        buttons.append(
-            InlineKeyboardButton(title, callback_data=f"set_settings|{model_key}")
-        )
+        buttons.append(InlineKeyboardButton(title, callback_data=f"set_settings|{model_key}"))
     reply_markup = InlineKeyboardMarkup([buttons])
 
     return text, reply_markup

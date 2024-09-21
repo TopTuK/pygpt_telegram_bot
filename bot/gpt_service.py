@@ -26,7 +26,7 @@ class GptService(object):
     '''
     
     def __init__(self, model: str="gpt-3.5-turbo", options: dict = _OPENAI_COMPLETION_OPTIONS):
-        assert model in {"text-davinci-003", "gpt-3.5-turbo-16k", "gpt-3.5-turbo", "gpt-4", "gpt-4o", "gpt-4-1106-preview", "gpt-4-vision-preview"}, f"Unknown model: {model}"
+        assert model in { "text-davinci-003", "gpt-3.5-turbo-16k", "gpt-3.5-turbo", "gpt-4", "gpt-4o", "gpt-4-1106-preview", "gpt-4-vision-preview"}, f"Unknown model: {model}"
 
         self.__model = model
         self.__options = options
