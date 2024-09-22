@@ -1,22 +1,11 @@
-name: Build And Deploy production to server
+name: Deploy production to server
 
 on: workflow_dispatch
 
 jobs:
-    build:
-        name: Build and pull club image
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@master
-            - run: docker login ghcr.io -u $GITHUB_ACTOR -p ${{ secrets.TOKEN }}
-            - run: docker build -t ghcr.io/toptuk/sgptbot:latest -t ghcr.io/toptuk/sgptbot:$GITHUB_SHA .
-            - run: docker image push ghcr.io/toptuk/sgptbot:latest
-            - run: docker image push ghcr.io/toptuk/sgptbot:$GITHUB_SHA
-    
     deploy:
-        name: Deploy SGPT Bot
+        name: Deploy and run SGPT Bot
         runs-on: ubuntu-latest
-        needs: build
         env:
             SSH_KEY_PATH: /tmp/ssh_key
         steps:
@@ -28,15 +17,13 @@ jobs:
                 secret_TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
                 secret_OPEN_AI_KEY: ${{ secrets.OPEN_AI_KEY }}
                 secret_OPEN_AI_API_BASE: ${{ secrets.OPEN_AI_API_BASE }}
-                secret_ALLOWED_TELEGRAM_USERNAMES: ${{ secrets.ALLOWED_TELEGRAM_USERNAMES }}
                 secret_DIALOG_TIMEOUT: ${{ secrets.DIALOG_TIMEOUT }}
                 secret_GENERATE_IMAGES_COUNT: ${{ secrets.GENERATE_IMAGES_COUNT }}
                 secret_IMAGE_SIZE: ${{ secrets.IMAGE_SIZE }}
                 secret_CHAT_MODE_PER_PAGE: ${{ secrets.CHAT_MODE_PER_PAGE }}
                 secret_ENABLE_MESSAGE_STREAMING: ${{ secrets.ENABLE_MESSAGE_STREAMING }}
                 secret_MONGODB_PORT: ${{ secrets.MONGODB_PORT }}
-            - run: echo "GITHUB_SHA=$GITHUB_SHA" >> .env
             - run: echo "${{ secrets.PRODUCTION_SSH_KEY }}" > ${{ env.SSH_KEY_PATH }} && chmod 600 ${{ env.SSH_KEY_PATH }}
             - run: scp -o StrictHostKeyChecking=no -i ${{ env.SSH_KEY_PATH }} .env ${{ secrets.PRODUCTION_SSH_USERNAME }}@${{ secrets.PRODUCTION_SSH_HOST }}:/root/sgptbot/.env
             - run: scp -o StrictHostKeyChecking=no -i ${{ env.SSH_KEY_PATH }} docker-compose.yml ${{ secrets.PRODUCTION_SSH_USERNAME }}@${{ secrets.PRODUCTION_SSH_HOST }}:/root/sgptbot/docker-compose.yml
-            - run: ssh -i ${{ env.SSH_KEY_PATH }} ${{ secrets.PRODUCTION_SSH_USERNAME }}@${{ secrets.PRODUCTION_SSH_HOST }} "cd /root/sgptbot && docker login ghcr.io -u $GITHUB_ACTOR -p ${{ secrets.TOKEN }} && docker pull ghcr.io/toptuk/sgptbot:$GITHUB_SHA && docker-compose -f docker-compose.yml --env-file=.env up -d && docker system prune --all --force"
+            - run: ssh -i ${{ env.SSH_KEY_PATH }} ${{ secrets.PRODUCTION_SSH_USERNAME }}@${{ secrets.PRODUCTION_SSH_HOST }} "cd /root/sgptbot && docker login ghcr.io -u $GITHUB_ACTOR -p ${{ secrets.TOKEN }} && docker pull ghcr.io/toptuk/sgptbot:latest && docker-compose -f docker-compose.yml --env-file=.env up -d && docker system prune --all --force"
