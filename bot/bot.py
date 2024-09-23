@@ -825,10 +825,14 @@ def run_bot() -> None:
     # add handlers
     user_filter = filters.ALL
     if len(config.allowed_telegram_usernames) > 0:
+        print(f'Got allowed Telegram users: {config.allowed_telegram_usernames}')
+
         usernames = [x for x in config.allowed_telegram_usernames if isinstance(x, str)]
         any_ids = [x for x in config.allowed_telegram_usernames if isinstance(x, int)]
+
         user_ids = [x for x in any_ids if x > 0]
         group_ids = [x for x in any_ids if x < 0]
+
         user_filter = filters.User(username=usernames) | filters.User(user_id=user_ids) | filters.Chat(chat_id=group_ids)
 
     application.add_handler(CommandHandler("start", start_handle, filters=user_filter))
@@ -857,8 +861,12 @@ def run_bot() -> None:
     application.add_error_handler(error_handle)
 
     # start the bot
+    print('All is ready. Start polling...')
+
     application.run_polling()
 
 
 if __name__ == "__main__":
+    print('Starting sgpt bot...')
+
     run_bot()

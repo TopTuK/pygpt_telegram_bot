@@ -39,3 +39,7 @@ services:
       - ME_CONFIG_BASICAUTH_PASSWORD=${MONGO_EXPRESS_PASSWORD:-password}
     depends_on:
       - mongo
+
+networks:
+  default:
+    name: pmi_network
