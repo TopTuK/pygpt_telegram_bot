@@ -78,7 +78,9 @@ async def is_bot_mentioned(update: Update, context: CallbackContext):
             if message.reply_to_message.from_user.id == context.bot.id:
                 return True
     except:
-        return False
+        print('is_bot_mentioned: EXCEPTION raised')
+        # Original: return True
+        return True
     else:
         return False
 
