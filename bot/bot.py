@@ -1,5 +1,6 @@
 import io
 import logging
+import sys
 import asyncio
 import traceback
 import html
@@ -33,6 +34,7 @@ import database
 import gpt_service
 
 # setup
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 logger.info('Init database')

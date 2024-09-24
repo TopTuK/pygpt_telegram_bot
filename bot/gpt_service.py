@@ -1,10 +1,12 @@
 import base64
 from io import BytesIO
 import config
+import sys
 import logging
 import tiktoken
 import openai
 
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # setup openai
