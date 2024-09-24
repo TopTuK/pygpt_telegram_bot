@@ -33,8 +33,10 @@ import database
 import gpt_service
 
 # setup
-db = database.Database()
 logger = logging.getLogger(__name__)
+
+logger.info('Init database')
+db = database.Database()
 
 user_semaphores = {}
 user_tasks = {}
@@ -858,6 +860,8 @@ async def post_init(application: Application):
     ])
 
 def run_bot() -> None:
+    logger.info('run bot call')
+
     application = (
         ApplicationBuilder()
         .token(config.telegram_token)
