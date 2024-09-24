@@ -2,8 +2,11 @@ import os
 import yaml
 from dotenv import load_dotenv
 from pathlib import Path
+import logging
 
-DEBUG = False
+logger = logging.getLogger(__name__)
+
+DEBUG = True
 
 config_dir = Path(__file__).parent.parent.resolve() / "config"
 

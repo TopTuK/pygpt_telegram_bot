@@ -8,8 +8,13 @@ import openai
 logger = logging.getLogger(__name__)
 
 # setup openai
+if config.DEBUG:
+    logger.info(f'config.openai_api_key: {config.openai_api_key}')
 openai.api_key = config.openai_api_key
+
 if config.openai_api_base is not None:
+    if config.DEBUG:
+        logger.info(f'config.openai_api_base: {config.openai_api_base}')
     openai.api_base = config.openai_api_base
 
 _OPENAI_COMPLETION_OPTIONS = {
@@ -25,8 +30,9 @@ class GptService(object):
     '''
     '''
     
-    def __init__(self, model: str="gpt-3.5-turbo", options: dict = _OPENAI_COMPLETION_OPTIONS):
-        assert model in { "text-davinci-003", "gpt-3.5-turbo-16k", "gpt-3.5-turbo", "gpt-4", "gpt-4o", "gpt-4-1106-preview", "gpt-4-vision-preview"}, f"Unknown model: {model}"
+    def __init__(self, model: str="gpt-4o", options: dict = _OPENAI_COMPLETION_OPTIONS):
+        # ["gpt-4-1106-preview", "gpt-4-vision-preview", "gpt-4", "gpt-4o"]
+        assert model in { "gpt-4", "gpt-4o", "gpt-4-1106-preview", "gpt-4-vision-preview"}, f"Unknown model: {model}"
 
         self.__model = model
         self.__options = options
@@ -96,16 +102,11 @@ class GptService(object):
         answer = answer.strip()
         return answer
     
-    def _count_tokens_from_messages(self, messages, answer, model="gpt-3.5-turbo"):
+    # ["gpt-4-1106-preview", "gpt-4-vision-preview", "gpt-4", "gpt-4o"]
+    def _count_tokens_from_messages(self, messages, answer, model="gpt-4o"):
         encoding = tiktoken.encoding_for_model(model)
 
-        if model == "gpt-3.5-turbo-16k":
-            tokens_per_message = 4  # every message follows <im_start>{role/name}\n{content}<im_end>\n
-            tokens_per_name = -1  # if there's a name, the role is omitted
-        elif model == "gpt-3.5-turbo":
-            tokens_per_message = 4
-            tokens_per_name = -1
-        elif model == "gpt-4":
+        if model == "gpt-4":
             tokens_per_message = 3
             tokens_per_name = 1
         elif model == "gpt-4-1106-preview":
@@ -144,7 +145,8 @@ class GptService(object):
 
         return n_input_tokens, n_output_tokens
     
-    def _count_tokens_from_prompt(self, prompt, answer, model="text-davinci-003"):
+    
+    def _count_tokens_from_prompt(self, prompt, answer, model="gpt-4o"):
         encoding = tiktoken.encoding_for_model(model)
 
         n_input_tokens = len(encoding.encode(prompt)) + 1
@@ -162,7 +164,8 @@ class GptService(object):
         answer = None
         while answer is None:
             try:
-                if self.model in {"gpt-3.5-turbo-16k", "gpt-3.5-turbo", "gpt-4", "gpt-4o", "gpt-4-1106-preview", "gpt-4-vision-preview"}:
+                # ["gpt-4-1106-preview", "gpt-4-vision-preview", "gpt-4", "gpt-4o"]
+                if self.model in { "gpt-4", "gpt-4o", "gpt-4-1106-preview", "gpt-4-vision-preview"}:
                     messages = self._generate_prompt_messages(message, dialog_messages, chat_mode)
 
                     r = await openai.ChatCompletion.acreate(
@@ -171,14 +174,6 @@ class GptService(object):
                         **self.__options
                     )
                     answer = r.choices[0].message["content"]
-                elif self.model == "text-davinci-003":
-                    prompt = self._generate_prompt(message, dialog_messages, chat_mode)
-                    r = await openai.Completion.acreate(
-                        engine=self.model,
-                        prompt=prompt,
-                        **self.__options
-                    )
-                    answer = r.choices[0].text
                 else:
                     raise ValueError(f"Unknown model: {self.model}")
 
@@ -203,7 +198,8 @@ class GptService(object):
         answer = None
         while answer is None:
             try:
-                if self.model in {"gpt-3.5-turbo-16k", "gpt-3.5-turbo", "gpt-4","gpt-4o", "gpt-4-1106-preview"}:
+                # ["gpt-4-1106-preview", "gpt-4-vision-preview", "gpt-4", "gpt-4o"]
+                if self.model in { "gpt-4","gpt-4o", "gpt-4-1106-preview"}:
                     messages = self._generate_prompt_messages(message, dialog_messages, chat_mode)
 
                     r_gen = await openai.ChatCompletion.acreate(
@@ -223,26 +219,8 @@ class GptService(object):
                             n_first_dialog_messages_removed = 0
 
                             yield "not_finished", answer, (n_input_tokens, n_output_tokens), n_first_dialog_messages_removed
-                            
-
-                elif self.model == "text-davinci-003":
-                    prompt = self._generate_prompt(message, dialog_messages, chat_mode)
-                    r_gen = await openai.Completion.acreate(
-                        engine=self.model,
-                        prompt=prompt,
-                        stream=True,
-                        **self.__options
-                    )
-
-                    answer = ""
-                    async for r_item in r_gen:
-                        answer += r_item.choices[0].text
-                        n_input_tokens, n_output_tokens = self._count_tokens_from_prompt(prompt, answer, model=self.model)
-                        n_first_dialog_messages_removed = n_dialog_messages_before - len(dialog_messages)
-                        yield "not_finished", answer, (n_input_tokens, n_output_tokens), n_first_dialog_messages_removed
 
                 answer = self._postprocess_answer(answer)
-
             except openai.error.InvalidRequestError as e:  # too many tokens
                 if len(dialog_messages) == 0:
                     raise e
@@ -294,6 +272,7 @@ class GptService(object):
         answer = None
         while answer is None:
             try:
+                # ["gpt-4-1106-preview", "gpt-4-vision-preview", "gpt-4", "gpt-4o"]
                 if self.model == "gpt-4-vision-preview" or self.model == "gpt-4o":
                     messages = self._generate_prompt_messages(message, dialog_messages,\
                                                               chat_mode, image_buffer)
