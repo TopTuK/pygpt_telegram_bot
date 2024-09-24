@@ -3,6 +3,7 @@ import yaml
 from dotenv import load_dotenv
 from pathlib import Path
 import logging
+import sys
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
