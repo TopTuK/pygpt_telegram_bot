@@ -885,10 +885,15 @@ def run_bot() -> None:
         logger.info(f'Got allowed Telegram users: {config.allowed_telegram_usernames}')
 
         usernames = [x for x in config.allowed_telegram_usernames if isinstance(x, str)]
+        logger.info(f'Allowed usernames: {usernames}')
+
         any_ids = [x for x in config.allowed_telegram_usernames if isinstance(x, int)]
 
         user_ids = [x for x in any_ids if x > 0]
+        logger.info(f'Allowed user ids: {user_ids}')
+
         group_ids = [x for x in any_ids if x < 0]
+        logger.info(f'Allowed group ids: {group_ids}')
 
         user_filter = filters.User(username=usernames) | filters.User(user_id=user_ids) | filters.Chat(chat_id=group_ids)
 
