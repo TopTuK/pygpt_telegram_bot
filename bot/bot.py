@@ -89,7 +89,7 @@ async def is_bot_mentioned(update: Update, context: CallbackContext):
             if message.reply_to_message.from_user.id == context.bot.id:
                 return True
     except:
-        logger.info('is_bot_mentioned: EXCEPTION raised')
+        logger.critical('is_bot_mentioned: EXCEPTION raised')
         # Original: return True
         return True
     else:
@@ -596,7 +596,7 @@ async def new_dialog_handle(update: Update, context: CallbackContext):
 
     user_id = update.message.from_user.id
     db.set_user_attribute(user_id, "last_interaction", datetime.now())
-    db.set_user_attribute(user_id, "current_model", "gpt-3.5-turbo")
+    db.set_user_attribute(user_id, "current_model", "gpt-4-1106-preview")
 
     db.start_new_dialog(user_id)
     await update.message.reply_text("Starting new dialog ✅")
@@ -884,11 +884,28 @@ def run_bot() -> None:
     if len(config.allowed_telegram_usernames) > 0:
         logger.info(f'Got allowed Telegram users: {config.allowed_telegram_usernames}')
 
-        usernames = [x for x in config.allowed_telegram_usernames if isinstance(x, str)]
-        any_ids = [x for x in config.allowed_telegram_usernames if isinstance(x, int)]
+        usernames = []
+        user_ids = []
+        group_ids = []
 
-        user_ids = [x for x in any_ids if x > 0]
-        group_ids = [x for x in any_ids if x < 0]
+        for usr in config.allowed_telegram_usernames:
+            if (usr.startswith('-')) and (usr[1:].isdigit()):
+                group_ids.append(int(usr))
+            elif usr.isdigit():
+                user_ids.append(int(usr))
+            else:
+                usernames.append(usr)
+
+        #usernames = [x for x in config.allowed_telegram_usernames if isinstance(x, str)]
+        logger.info(f'Allowed usernames: {usernames}')
+
+        #any_ids = [x for x in config.allowed_telegram_usernames if isinstance(x, int)]
+
+        #user_ids = [x for x in any_ids if x > 0]
+        logger.info(f'Allowed user ids: {user_ids}')
+
+        #group_ids = [x for x in any_ids if x < 0]
+        logger.info(f'Allowed group ids: {group_ids}')
 
         user_filter = filters.User(username=usernames) | filters.User(user_id=user_ids) | filters.Chat(chat_id=group_ids)
 

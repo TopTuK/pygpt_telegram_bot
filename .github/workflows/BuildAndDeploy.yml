@@ -27,6 +27,7 @@ jobs:
                 secret_TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
                 secret_OPEN_AI_KEY: ${{ secrets.OPEN_AI_KEY }}
                 secret_OPEN_AI_API_BASE: ${{ secrets.OPEN_AI_API_BASE }}
+                secret_ALLOWED_TELEGRAM_USERNAMES: ${{ secrets.ALLOWED_TELEGRAM_USERNAMES }}
                 secret_DIALOG_TIMEOUT: ${{ secrets.DIALOG_TIMEOUT }}
                 secret_GENERATE_IMAGES_COUNT: ${{ secrets.GENERATE_IMAGES_COUNT }}
                 secret_IMAGE_SIZE: ${{ secrets.IMAGE_SIZE }}

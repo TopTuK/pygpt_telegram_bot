@@ -12,7 +12,7 @@ handler = logging.StreamHandler(sys.stdout)
 handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 
-DEBUG = True
+DEBUG = False
 
 config_dir = Path(__file__).parent.parent.resolve() / "config"
 
