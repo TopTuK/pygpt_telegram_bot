@@ -1,5 +1,6 @@
 import io
 import logging
+import sys
 import asyncio
 import traceback
 import html
@@ -33,8 +34,15 @@ import database
 import gpt_service
 
 # setup
-db = database.Database()
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.DEBUG)
+logger.addHandler(handler)
+
+logger.info('Init database')
+db = database.Database()
 
 user_semaphores = {}
 user_tasks = {}
@@ -81,7 +89,7 @@ async def is_bot_mentioned(update: Update, context: CallbackContext):
             if message.reply_to_message.from_user.id == context.bot.id:
                 return True
     except:
-        logger.info('is_bot_mentioned: EXCEPTION raised')
+        logger.critical('is_bot_mentioned: EXCEPTION raised')
         # Original: return True
         return True
     else:
@@ -343,9 +351,13 @@ async def _vision_message_handle_fn(update: Update, context: CallbackContext, us
         return
 
 async def unsupport_message_handle(update: Update, context: CallbackContext, message=None):
+    # check bot is mentioned
+    if not await is_bot_mentioned(update, context):
+        return
+
     error_text = f"I don't know how to read files or videos. Send the picture in normal mode (Quick Mode)."
     logger.error(error_text)
-    #await update.message.reply_text(error_text)
+    await update.message.reply_text(error_text)
     return
 
 async def message_handle(update: Update, context: CallbackContext, message=None, use_new_dialog_timeout=True):
@@ -588,7 +600,7 @@ async def new_dialog_handle(update: Update, context: CallbackContext):
 
     user_id = update.message.from_user.id
     db.set_user_attribute(user_id, "last_interaction", datetime.now())
-    db.set_user_attribute(user_id, "current_model", "gpt-3.5-turbo")
+    db.set_user_attribute(user_id, "current_model", "gpt-4-1106-preview")
 
     db.start_new_dialog(user_id)
     await update.message.reply_text("Starting new dialog ✅")
@@ -858,6 +870,8 @@ async def post_init(application: Application):
     ])
 
 def run_bot() -> None:
+    logger.info('run bot call')
+
     application = (
         ApplicationBuilder()
         .token(config.telegram_token)
@@ -874,11 +888,28 @@ def run_bot() -> None:
     if len(config.allowed_telegram_usernames) > 0:
         logger.info(f'Got allowed Telegram users: {config.allowed_telegram_usernames}')
 
-        usernames = [x for x in config.allowed_telegram_usernames if isinstance(x, str)]
-        any_ids = [x for x in config.allowed_telegram_usernames if isinstance(x, int)]
+        usernames = []
+        user_ids = []
+        group_ids = []
 
-        user_ids = [x for x in any_ids if x > 0]
-        group_ids = [x for x in any_ids if x < 0]
+        for usr in config.allowed_telegram_usernames:
+            if (usr.startswith('-')) and (usr[1:].isdigit()):
+                group_ids.append(int(usr))
+            elif usr.isdigit():
+                user_ids.append(int(usr))
+            else:
+                usernames.append(usr)
+
+        #usernames = [x for x in config.allowed_telegram_usernames if isinstance(x, str)]
+        logger.info(f'Allowed usernames: {usernames}')
+
+        #any_ids = [x for x in config.allowed_telegram_usernames if isinstance(x, int)]
+
+        #user_ids = [x for x in any_ids if x > 0]
+        logger.info(f'Allowed user ids: {user_ids}')
+
+        #group_ids = [x for x in any_ids if x < 0]
+        logger.info(f'Allowed group ids: {group_ids}')
 
         user_filter = filters.User(username=usernames) | filters.User(user_id=user_ids) | filters.Chat(chat_id=group_ids)
 

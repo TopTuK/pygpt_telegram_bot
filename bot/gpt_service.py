@@ -1,11 +1,17 @@
 import base64
 from io import BytesIO
 import config
+import sys
 import logging
 import tiktoken
 import openai
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.DEBUG)
+logger.addHandler(handler)
 
 # setup openai
 if config.DEBUG:
@@ -30,7 +36,7 @@ class GptService(object):
     '''
     '''
     
-    def __init__(self, model: str="gpt-4o", options: dict = _OPENAI_COMPLETION_OPTIONS):
+    def __init__(self, model: str="gpt-4-1106-preview", options: dict = _OPENAI_COMPLETION_OPTIONS):
         # ["gpt-4-1106-preview", "gpt-4-vision-preview", "gpt-4", "gpt-4o"]
         assert model in { "gpt-4", "gpt-4o", "gpt-4-1106-preview", "gpt-4-vision-preview"}, f"Unknown model: {model}"
 
@@ -103,7 +109,7 @@ class GptService(object):
         return answer
     
     # ["gpt-4-1106-preview", "gpt-4-vision-preview", "gpt-4", "gpt-4o"]
-    def _count_tokens_from_messages(self, messages, answer, model="gpt-4o"):
+    def _count_tokens_from_messages(self, messages, answer, model="gpt-4-1106-preview"):
         encoding = tiktoken.encoding_for_model(model)
 
         if model == "gpt-4":
@@ -146,7 +152,7 @@ class GptService(object):
         return n_input_tokens, n_output_tokens
     
     
-    def _count_tokens_from_prompt(self, prompt, answer, model="gpt-4o"):
+    def _count_tokens_from_prompt(self, prompt, answer, model="gpt-4-1106-preview"):
         encoding = tiktoken.encoding_for_model(model)
 
         n_input_tokens = len(encoding.encode(prompt)) + 1

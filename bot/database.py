@@ -3,6 +3,15 @@ import pymongo
 import uuid
 from datetime import datetime
 import config
+import logging
+import sys
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.DEBUG)
+logger.addHandler(handler)
 
 class Database:
     def __init__(self):
