@@ -89,7 +89,7 @@ async def is_bot_mentioned(update: Update, context: CallbackContext):
             if message.reply_to_message.from_user.id == context.bot.id:
                 return True
     except:
-        logger.info('is_bot_mentioned: EXCEPTION raised')
+        logger.critical('is_bot_mentioned: EXCEPTION raised')
         # Original: return True
         return True
     else:
@@ -596,7 +596,7 @@ async def new_dialog_handle(update: Update, context: CallbackContext):
 
     user_id = update.message.from_user.id
     db.set_user_attribute(user_id, "last_interaction", datetime.now())
-    db.set_user_attribute(user_id, "current_model", "gpt-4o")
+    db.set_user_attribute(user_id, "current_model", "gpt-4-1106-preview")
 
     db.start_new_dialog(user_id)
     await update.message.reply_text("Starting new dialog ✅")

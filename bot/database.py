@@ -15,8 +15,6 @@ logger.addHandler(handler)
 
 class Database:
     def __init__(self):
-        logger.info('Database::init')
-
         self.client = pymongo.MongoClient(config.mongodb_uri)
         self.db = self.client["chatgpt_telegram_bot"]
 
@@ -24,8 +22,6 @@ class Database:
         self.dialog_collection = self.db["dialog"]
 
     def check_if_user_exists(self, user_id: int, raise_exception: bool = False):
-        logger.info('Database::check_if_user_exists: ')
-
         if self.user_collection.count_documents({"_id": user_id}) > 0:
             return True
         else:
