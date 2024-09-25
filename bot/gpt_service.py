@@ -37,8 +37,7 @@ class GptService(object):
     '''
     
     def __init__(self, model: str="gpt-4-1106-preview", options: dict = _OPENAI_COMPLETION_OPTIONS):
-        # ["gpt-4-1106-preview", "gpt-4-vision-preview", "gpt-4", "gpt-4o"]
-        assert model in { "gpt-4", "gpt-4o", "gpt-4-1106-preview", "gpt-4-vision-preview"}, f"Unknown model: {model}"
+        assert model in { "gpt-4", "gpt-4o", "gpt-4-1106-preview", "gpt-4-vision-preview", "o1-preview", "o1-mini" }, f"Unknown model: {model}"
 
         self.__model = model
         self.__options = options
@@ -124,6 +123,12 @@ class GptService(object):
         elif model == "gpt-4o":
             tokens_per_message = 3
             tokens_per_name = 1
+        elif model == "o1-preview":
+            tokens_per_message = 3
+            tokens_per_name = 1
+        elif model == "o1-mini":
+            tokens_per_message = 3
+            tokens_per_name = 1
         else:
             raise ValueError(f"Unknown model: {model}")
 
@@ -170,8 +175,7 @@ class GptService(object):
         answer = None
         while answer is None:
             try:
-                # ["gpt-4-1106-preview", "gpt-4-vision-preview", "gpt-4", "gpt-4o"]
-                if self.model in { "gpt-4", "gpt-4o", "gpt-4-1106-preview", "gpt-4-vision-preview"}:
+                if self.model in { "gpt-4", "gpt-4o", "gpt-4-1106-preview", "gpt-4-vision-preview", "o1-mini", "o1-preview" }:
                     messages = self._generate_prompt_messages(message, dialog_messages, chat_mode)
 
                     r = await openai.ChatCompletion.acreate(
@@ -205,7 +209,7 @@ class GptService(object):
         while answer is None:
             try:
                 # ["gpt-4-1106-preview", "gpt-4-vision-preview", "gpt-4", "gpt-4o"]
-                if self.model in { "gpt-4","gpt-4o", "gpt-4-1106-preview"}:
+                if self.model in { "gpt-4","gpt-4o", "gpt-4-1106-preview", "o1-preview", "o1-mini" }:
                     messages = self._generate_prompt_messages(message, dialog_messages, chat_mode)
 
                     r_gen = await openai.ChatCompletion.acreate(
@@ -278,7 +282,6 @@ class GptService(object):
         answer = None
         while answer is None:
             try:
-                # ["gpt-4-1106-preview", "gpt-4-vision-preview", "gpt-4", "gpt-4o"]
                 if self.model == "gpt-4-vision-preview" or self.model == "gpt-4o":
                     messages = self._generate_prompt_messages(message, dialog_messages,\
                                                               chat_mode, image_buffer)
