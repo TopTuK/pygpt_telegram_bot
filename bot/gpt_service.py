@@ -67,6 +67,20 @@ class GptService(object):
     
     def _encode_image(self, image_buffer: BytesIO) -> bytes:
         return base64.b64encode(image_buffer.read()).decode("utf-8")
+
+    def _generate_o1_prompt_messages(self, message, dialog_messages):
+        '''
+        '''
+
+        messages = []
+        for dialog_message in dialog_messages:
+            messages.append({"role": "user", "content": dialog_message["user"]})
+            messages.append({"role": "assistant", "content": dialog_message["bot"]})
+        
+        messages.append({"role": "user", "content": message})
+
+        return messages
+
     
     def _generate_prompt_messages(self, message, dialog_messages, chat_mode, image_buffer: BytesIO = None):
         prompt = config.chat_modes[chat_mode]["prompt_start"]
@@ -176,7 +190,12 @@ class GptService(object):
         while answer is None:
             try:
                 if self.model in { "gpt-4", "gpt-4o", "gpt-4-1106-preview", "gpt-4-vision-preview", "o1-mini", "o1-preview" }:
-                    messages = self._generate_prompt_messages(message, dialog_messages, chat_mode)
+                    
+                    messages = []
+                    if self.model in { "o1-mini", "o1-preview" }:
+                        messages = self._generate_o1_prompt_messages(message, dialog_messages)
+                    else:
+                        messages = self._generate_prompt_messages(message, dialog_messages, chat_mode)
 
                     r = await openai.ChatCompletion.acreate(
                         model=self.model,
