@@ -397,6 +397,7 @@ async def message_handle(update: Update, context: CallbackContext, message=None,
             if (datetime.now() - db.get_user_attribute(user_id, "last_interaction")).seconds > config.new_dialog_timeout and len(db.get_dialog_messages(user_id)) > 0:
                 db.start_new_dialog(user_id)
                 await update.message.reply_text(f"Starting new dialog due to timeout (<b>{config.chat_modes[chat_mode]['name']}</b> mode) ✅", parse_mode=ParseMode.HTML)
+        
         db.set_user_attribute(user_id, "last_interaction", datetime.now())
 
         # in case of CancelledError
